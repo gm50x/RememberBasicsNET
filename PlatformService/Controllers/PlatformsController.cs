@@ -51,7 +51,7 @@ public class PlatformsController : ControllerBase
     _platformRepository.CreatePlatform(platform);
     _platformRepository.SaveChanges();
     var platformOutput = _mapper.Map<PlatformReadDto>(platform);
-    return Ok(platformOutput);
+    return CreatedAtRoute(nameof(GetPlatformById), new { Id = platformOutput.Id }, platformOutput);
   }
 
 }
