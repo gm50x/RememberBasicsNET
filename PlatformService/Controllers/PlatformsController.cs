@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PlatformService.Data;
 using PlatformService.Dtos;
 using PlatformService.Models;
+using PlatformService.SyncDataServices;
 
 namespace PlatformService.Controllers;
 
@@ -13,12 +14,14 @@ public class PlatformsController : ControllerBase
   private readonly ILogger<PlatformsController> _logger;
   private readonly IPlatformRepository _platformRepository;
   private readonly IMapper _mapper;
+  private readonly ICommandDataClient _commandDataClient;
 
-  public PlatformsController(ILogger<PlatformsController> logger, IPlatformRepository platformRepository, IMapper mapper)
+  public PlatformsController(ILogger<PlatformsController> logger, IPlatformRepository platformRepository, IMapper mapper, ICommandDataClient commandDataClient)
   {
     _logger = logger;
     _platformRepository = platformRepository;
     _mapper = mapper;
+    _commandDataClient = commandDataClient;
   }
 
   [HttpGet(Name = "GetPlatforms")]
@@ -44,14 +47,23 @@ public class PlatformsController : ControllerBase
   }
 
   [HttpPost(Name = "CreatePlatform")]
-  public ActionResult<PlatformReadDto> CreatePlatform(PlatformCreateDto platformDto)
+  public async Task<ActionResult<PlatformReadDto>> CreatePlatform(PlatformCreateDto platformDto)
   {
     _logger.LogInformation("CreatePlatform");
     var platform = _mapper.Map<Platform>(platformDto);
     _platformRepository.CreatePlatform(platform);
     _platformRepository.SaveChanges();
     var platformOutput = _mapper.Map<PlatformReadDto>(platform);
-    return CreatedAtRoute(nameof(GetPlatformById), new { Id = platformOutput.Id }, platformOutput);
+    try
+    {
+      await _commandDataClient.SendPlatformToCommand(platformOutput);
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"--> Failed sending synchronously: {ex.Message}");
+    }
+
+    return CreatedAtRoute(nameof(GetPlatformById), new { platformOutput.Id }, platformOutput);
   }
 
 }

@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using PlatformService.Controllers;
 using PlatformService.Data;
+using PlatformService.SyncDataServices;
+using PlatformService.SyncDataServices.Http;
 
 namespace PlatformService;
 
@@ -21,6 +23,9 @@ public class Program
 
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
+        builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
+        var commandServiceBaseURL = builder.Configuration.GetSection("CommandService").GetValue<string>("BaseURL");
+        Console.WriteLine($"--> CommandService {commandServiceBaseURL}");
 
         var app = builder.Build();
 
