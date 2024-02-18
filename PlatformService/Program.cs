@@ -19,12 +19,29 @@ public class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("DevInMemory"));
+
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Using InMemory Database");
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("DevInMemory"));
+        }
+        else
+        {
+            var connectionString = builder.Configuration.GetConnectionString("PlatformsDatabase")!
+                .Replace("$SERVER", Environment.GetEnvironmentVariable("DB_SERVER"))
+                .Replace("$USER", Environment.GetEnvironmentVariable("DB_USER"))
+                .Replace("$PASS", Environment.GetEnvironmentVariable("DB_PASS"));
+            Console.WriteLine("Using SQLServer Database");
+            Console.WriteLine($"Using SQLServer Database: ${connectionString}");
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+        }
+
 
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
         builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
-        var commandServiceBaseURL = builder.Configuration.GetSection("CommandService").GetValue<string>("BaseURL");
+        var commandServiceBaseURL = builder.Configuration["CommandService:BaseURL"];
+        Console.WriteLine($"--> {builder.Environment.EnvironmentName}");
         Console.WriteLine($"--> CommandService {commandServiceBaseURL}");
 
         var app = builder.Build();
@@ -40,8 +57,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
 
-        PrepareDb.PreparePopulation(app);
-
+        PrepareDb.PrepareDatabase(app, app.Environment);
         app.Run();
     }
 }

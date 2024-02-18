@@ -1,14 +1,34 @@
+using Microsoft.EntityFrameworkCore;
 using PlatformService.Models;
 
 namespace PlatformService.Data;
 
 public static class PrepareDb
 {
-  public static void PreparePopulation(IApplicationBuilder app)
+  public static void PrepareDatabase(IApplicationBuilder app, IWebHostEnvironment environment)
   {
     using (var serviceScope = app.ApplicationServices.CreateScope())
     {
-      SeedData(serviceScope.ServiceProvider.GetService<AppDbContext>());
+      var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
+      ArgumentNullException.ThrowIfNull(context);
+      if (environment.IsProduction())
+      {
+        RunMigrations(context);
+      }
+      SeedData(context);
+    }
+  }
+
+  private static void RunMigrations(AppDbContext context)
+  {
+    try
+    {
+      Console.WriteLine($"--> Applying Migrations");
+      context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"--> Could not run migrations: {ex.Message}");
     }
   }
 
@@ -16,6 +36,7 @@ public static class PrepareDb
   {
     if (!context.Platforms.Any())
     {
+      Thread.Sleep(1000);
       Console.WriteLine("---> Seeding data...");
       context.Platforms.AddRange(
         new Platform { Name = "Dot Net", Publisher = "Microsoft", Cost = "Free" },

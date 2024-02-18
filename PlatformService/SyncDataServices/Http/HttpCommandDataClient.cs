@@ -17,9 +17,8 @@ public class HttpCommandDataClient : ICommandDataClient
 
   public async Task SendPlatformToCommand(PlatformReadDto platformData)
   {
-    var config = _configuration.GetSection("CommandService");
-    var baseURL = config.GetValue<string>("BaseURL");
-    var createPlatformsURI = config.GetValue<string>("CreatePlatformsURI");
+    var baseURL = _configuration["CommandService:BaseURL"];
+    var createPlatformsURI = _configuration["CommandService:CreatePlatformsURI"];
     var url = $"{baseURL}{createPlatformsURI}";
     var httpContent = new StringContent(
       JsonSerializer.Serialize(platformData),

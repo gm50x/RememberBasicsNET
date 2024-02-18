@@ -19,6 +19,16 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "500m"
+          env:
+            - name: DB_SERVER
+              value: "mssql-clusterip-srv"
+            - name: DB_USER
+              value: "sa"
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: mssql
+                  key: SA_PASSWORD
           ports:
             - containerPort: 8080
 
@@ -90,3 +100,34 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: 8080
+---
+## helm upgrade --install ingress-nginx ingress-nginx \
+## --repo https://kubernetes.github.io/ingress-nginx \
+##  --namespace ingress-nginx --create-namespace
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-srv
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gedai.local
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/api/platforms"
+            backend:
+              service:
+                name: platforms-clusterip-svc
+                port:
+                  number: 8080
+          - pathType: Prefix
+            path: "/api/c/platforms"
+            backend:
+              service:
+                name: commands-clusterip-svc
+                port:
+                  number: 8080
