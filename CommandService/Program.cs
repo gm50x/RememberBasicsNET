@@ -1,4 +1,7 @@
 
+using CommandService.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace CommandService;
 
 public class Program
@@ -9,7 +12,10 @@ public class Program
 
         // Add services to the container.
 
+        builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMemoryDb"));
         builder.Services.AddControllers();
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        builder.Services.AddScoped<ICommandRepository, CommandRepository>();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
