@@ -5,8 +5,9 @@
 ## Install Packages
 
 -
-- dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
-- dotnet add package Microsoft.EntityFrameworkCore
-- dotnet add package Microsoft.EntityFrameworkCore.Design
-- dotnet add package Microsoft.EntityFrameworkCore.InMemory
-- dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+- dotnet add {project} package AutoMapper.Extensions.Microsoft.DependencyInjection
+- dotnet add {project} package Microsoft.EntityFrameworkCore
+- dotnet add {project} package Microsoft.EntityFrameworkCore.Design
+- dotnet add {project} package Microsoft.EntityFrameworkCore.InMemory
+- dotnet add {project} package Microsoft.EntityFrameworkCore.SqlServer
+- dotnet add {project} package RabbitMQ.Client

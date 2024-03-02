@@ -4,6 +4,7 @@ using PlatformService.AsyncDataServices;
 using PlatformService.Controllers;
 using PlatformService.Data;
 using PlatformService.SyncDataServices;
+using PlatformService.SyncDataServices.Grpc;
 using PlatformService.SyncDataServices.Http;
 
 namespace PlatformService;
@@ -41,6 +42,7 @@ public class Program
         builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
         builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
         builder.Services.AddSingleton<IMessageBusClient, RabbitMQMessageBusClient>();
+        builder.Services.AddGrpc();
         var commandServiceBaseURL = builder.Configuration["CommandService:BaseURL"];
         Console.WriteLine($"--> {builder.Environment.EnvironmentName}");
         Console.WriteLine($"--> CommandService {commandServiceBaseURL}");
@@ -57,6 +59,13 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthorization();
         app.MapControllers();
+        app.MapGrpcService<GrpcPlatformService>();
+
+        app.MapGet("/protos", async context =>
+        {
+            await context.Response.WriteAsync(File.ReadAllText("Protos/platforms.proto"));
+        });
+
 
         PrepareDb.PrepareDatabase(app, app.Environment);
         app.Run();

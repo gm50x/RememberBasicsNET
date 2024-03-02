@@ -2,6 +2,7 @@
 using CommandService.AsyncDataServices;
 using CommandService.Data;
 using CommandService.EventProcessing;
+using CommandService.SyncDataServices.Grpc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CommandService;
@@ -26,6 +27,8 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddScoped<IPlatformDataClient, GrpcPlatformDataClient>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -36,11 +39,10 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
-
         app.MapControllers();
+
+        PrepareDatabase.PreparePopulation(app);
 
         app.Run();
     }
