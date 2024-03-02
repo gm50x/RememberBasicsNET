@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using PlatformService.AsyncDataServices;
 using PlatformService.Controllers;
 using PlatformService.Data;
 using PlatformService.SyncDataServices;
@@ -31,8 +32,7 @@ public class Program
                 .Replace("$SERVER", Environment.GetEnvironmentVariable("DB_SERVER"))
                 .Replace("$USER", Environment.GetEnvironmentVariable("DB_USER"))
                 .Replace("$PASS", Environment.GetEnvironmentVariable("DB_PASS"));
-            Console.WriteLine("Using SQLServer Database");
-            Console.WriteLine($"Using SQLServer Database: ${connectionString}");
+            Console.WriteLine("---> Using SQLServer Database");
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
         }
 
@@ -40,6 +40,7 @@ public class Program
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
         builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
+        builder.Services.AddSingleton<IMessageBusClient, RabbitMQMessageBusClient>();
         var commandServiceBaseURL = builder.Configuration["CommandService:BaseURL"];
         Console.WriteLine($"--> {builder.Environment.EnvironmentName}");
         Console.WriteLine($"--> CommandService {commandServiceBaseURL}");
